@@ -12,12 +12,12 @@ import matplotlib.pyplot as plt
 # naive 1D discrete fourier transform
 def naive_ft(x):
     x = np.asarray(x, dtype=complex)
-    N = len(x)
+    N = x.shape[0]
     X = np.zeros(N, dtype=complex)  # initialize result array as an array of 0s
 
     for k in range(N):
         for n in range(N):
-            X[k] += x[n] * np.exp(-1j * 2 * np.pi * k * n / N)
+            X[k] += x[n] * np.exp(-2j * np.pi * k * n / N)
 
     return X
 
@@ -25,12 +25,14 @@ def naive_ft(x):
 # naive 1D inverse discrete fourier transform
 def naive_ift(X):
     X = np.asarray(X, dtype=complex)
-    N = len(X)
+    N = X.shape[0]
     x = np.zeros(N, dtype=complex)  # initialize result array as an array of 0s
 
-    for k in range(N):
-        for n in range(N):
-            x[n] = 1/N * X[k] * np.exp(1j * 2 * np.pi * k * n / N)
+    for n in range(N):
+        for k in range(N):
+            x[n] += X[k] * np.exp(2j * np.pi * k * n / N)
+
+        x[n] /= N    
 
     return x
 
@@ -39,7 +41,7 @@ def naive_ift(X):
 # parameters are x (an array) and n_subproblems, which defines the base case for the algo (default value is 8)
 def fft(x, n_subproblems=8):
     x = np.asarray(x, dtype=complex)
-    N = len(x)
+    N = x.shape[0]
     X = np.zeros(N, dtype=complex)
 
     if N % 2 != 0:
@@ -67,7 +69,7 @@ def fft(x, n_subproblems=8):
 # 1D cooley-tukey inverse FFT
 def ifft(X, n_subproblems=8):
     X = np.asarray(X, dtype=complex)
-    N = len(X)
+    N = X.shape[0]
     x = np.zeros(N, dtype=complex)
 
     if N % 2 != 0:
@@ -75,7 +77,7 @@ def ifft(X, n_subproblems=8):
 
     # base case
     elif N <= n_subproblems:
-        return naive_ift(x)
+        return naive_ift(X)
 
     else:
         x_even = ifft(X[::2])  # all elements at even indeces
@@ -121,6 +123,7 @@ def two_dim_ifft(X):
         x[n, :] = ifft(x[n, :])
 
     return x
+
 
 def new_size(size):
     n = int(math.log(size, 2))
@@ -203,7 +206,35 @@ def mode_4(image):
     return 0
 
 
+def test():
+    print("testing")
+    # one dimension
+    a = np.random.random(1024)
+    fft1 = np.fft.fft(a)
+
+    # two dimensions
+    a2 = np.random.rand(32, 32)
+    fft2 = np.fft.fft2(a2)
+
+    tests = (
+        (naive_ft, a, fft1),
+        (naive_ift, fft1, a),
+        (fft, a, fft1),
+        (ifft, fft1, a),
+        (two_dim_fft, a2, fft2),
+        (two_dim_ifft, fft2, a2),
+    )
+
+    for method, args, expected in tests:
+        if not np.allclose(method(args), expected):
+            print(args)
+            print(method(args))
+            print(expected)
+            raise AssertionError(
+                "{} failed the test".format(method.__name__))
+
 def main():
+    test()
     args = parse_args()
     img = args.i
     # print(args.m)
