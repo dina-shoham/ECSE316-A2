@@ -80,9 +80,15 @@ def ifft(X, n_subproblems=8):
     else:
         x_even = ifft(X[::2])  # all elements at even indeces
         x_odd = ifft(X[1::2])  # all elements at odd indeces
-        coeff = 1/N * np.exp(2j * np.pi * np.arange(N // 2) / N)
+        #coeff = 1/N * np.exp(2j * np.pi * np.arange(N // 2) / N)
 
-        x = np.concatenate(x_even + coeff * x_odd, x_even - coeff * x_odd)
+        #x = np.concatenate(x_even + coeff * x_odd, x_even - coeff * x_odd)
+        x = np.zeros(N, dtype=complex)
+
+        for n in range(N):
+            x[n] = (N//2) * x_even[n % (N//2)] + \
+                np.exp(2j * np.pi * n / N) * (N//2) * x_odd[n % (N//2)]
+            x[n] /= N
 
         return x
 
@@ -105,7 +111,7 @@ def two_dim_fft(x):
 # 2D ifft
 def two_dim_ifft(X):
     X = np.asarray(X, dtype=complex)
-    N, M = x.shape
+    N, M = X.shape
     x = np.zeros((N, M), dtype=complex)
 
     for m in range(M):
@@ -133,9 +139,9 @@ def parse_args():
 
 
 # mode 1: image is converted into its FFT form and displayed
-def mode_1(args):
+def mode_1(image):
     print("mode 1")
-    oldImage = plt.imread(args.i).astype(float)
+    oldImage = plt.imread(image).astype(float)
     newShape = new_size(oldImage.shape[0]), new_size(oldImage.shape[1])
     newImage = np.zeros(newShape)
     newImage[:oldImage.shape[0], :oldImage.shape[1]] = oldImage
@@ -154,19 +160,45 @@ def mode_1(args):
 
 
 # mode 2: for denoising where the image is denoised by applying an FFT, truncating high frequencies and then displayed
-def mode_2():
+def mode_2(image):
     print("mode 2")
+    keepRatio = 0.08
+
+    oldImage = plt.imread(image).astype(float)
+    newShape = new_size(oldImage.shape[0]), new_size(oldImage.shape[1])
+    newImage = np.zeros(newShape)
+    newImage[:oldImage.shape[0], :oldImage.shape[1]] = oldImage
+    fftImage = two_dim_fft(newImage)
+    rows, columns = fftImage.shape
+
+    print("Fraction of pixels used {} and the number is ({}, {}) out of ({}, {})".format(
+        keepRatio, int(keepRatio * rows), int(keepRatio * columns), rows, columns))
+
+    fftImage[int(rows * keepRatio) : int(rows * (1 - keepRatio))] = 0
+    fftImage[:, int(columns * keepRatio) : int(columns * (1 - keepRatio))] = 0
+
+    denoisedImage = two_dim_ifft(fftImage).real
+
+    fig = plt.figure()
+    fig.add_subplot(121)
+    plt.title("Original Image")
+    plt.imshow(oldImage, cmap="gray")
+    fig.add_subplot(122)
+    plt.title("Denoised Image")
+    plt.imshow(denoisedImage, cmap="gray")
+    plt.show()
+
     return 0
 
 
 # mode 3: for compressing and saving the image
-def mode_3():
+def mode_3(image):
     print("mode 3")
     return 0
 
 
 # mode 4: for plotting the runtime graphs for the report
-def mode_4():
+def mode_4(image):
     print("mode 4")
     return 0
 
@@ -177,13 +209,13 @@ def main():
     # print(args.m)
     # print(args.i)
     if args.m == 1:
-        mode_1(args)
+        mode_1(args.i)
     elif args.m == 2:
-        mode_2(args)
+        mode_2(args.i)
     elif args.m == 3:
-        mode_3(args)
+        mode_3(args.i)
     elif args.m == 4:
-        mode_4(args)
+        mode_4(args.i)
     else:
         raise ValueError("something wrong with the mode")
 
