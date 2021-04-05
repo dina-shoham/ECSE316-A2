@@ -1,6 +1,8 @@
 # ECSE 316 - Assignment 2
 # Dina Shoham and Roey Wine
 
+import argparse
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -75,13 +77,13 @@ def ifft(X, n_subproblems=8):
 
         x = np.concatenate(x_even + coeff * x_odd, x_even - coeff * x_odd)
 
-        return X
+        return x
 
 
 # 2D fft
 def two_dim_fft(x):
     x = np.asarray(x, dtype=complex)
-    N, M = len(x)
+    N, M = x.shape
     X = np.zeros((N, M), dtype=complex)
 
     for m in range(M):
@@ -96,7 +98,7 @@ def two_dim_fft(x):
 # 2D ifft
 def two_dim_ifft(X):
     X = np.asarray(X, dtype=complex)
-    N, M = len(x)
+    N, M = x.shape
     x = np.zeros((N, M), dtype=complex)
 
     for m in range(M):
@@ -106,3 +108,58 @@ def two_dim_ifft(X):
         x[n, :] = ifft(x[n, :])
 
     return x
+
+
+# parsing command line arguments
+def parse_args():
+    parser = argparse.ArgumentParser(description="parse switches")
+    parser.add_argument('-m', action='store', type=int, default=1)
+    parser.add_argument('-i', action='store', default='moonlanding.png')
+
+    args = parser.parse_args()
+
+    return args
+
+
+# mode 1: image is converted into its FFT form and displayed
+def mode_1():
+    print("mode 1")
+    return 0
+
+
+# mode 2: for denoising where the image is denoised by applying an FFT, truncating high frequencies and then displayed
+def mode_2():
+    print("mode 2")
+    return 0
+
+
+# mode 3: for compressing and saving the image
+def mode_3():
+    print("mode 3")
+    return 0
+
+
+# mode 4: for plotting the runtime graphs for the report
+def mode_4():
+    print("mode 4")
+    return 0
+
+
+def main():
+    args = parse_args()
+    img = args.i
+    # print(args.m)
+    # print(args.i)
+    if args.m == 1:
+        mode_1()
+    elif args.m == 2:
+        mode_2()
+    elif args.m == 3:
+        mode_3()
+    elif args.m == 4:
+        mode_4()
+    else:
+        raise ValueError("something wrong with the mode")
+
+
+main()
