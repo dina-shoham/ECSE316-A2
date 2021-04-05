@@ -7,7 +7,7 @@ import math
 import numpy as np
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
-
+from scipy.sparse import csr_matrix
 
 # naive 1D discrete fourier transform
 def naive_ft(x):
@@ -185,7 +185,7 @@ def mode_2(image):
     fftImage = two_dim_fft(newImage)
     rows, columns = fftImage.shape
 
-    print("Fraction of pixels used {} and the number is ({}, {}) out of ({}, {})".format(
+    print("Ratio of pixels used is {} and the number is ({}, {}) out of ({}, {})".format(
         keepRatio, int(keepRatio * rows), int(keepRatio * columns), rows, columns))
 
     # Set high frequencies to 0
@@ -218,8 +218,42 @@ def mode_3(image):
     newImage = np.zeros(newShape)
     newImage[:oldImage.shape[0], :oldImage.shape[1]] = oldImage
 
-    compressionValue = [0, 10, 30, 60, 80, 95]
+    # Apply a fourier transform
+    fftImage = two_dim_fft(newImage)
 
+    # Array of different values to use for compression
+    compressionValue = [0, 10, 30, 60, 80, 95]
+    compressionIndex = 0
+
+    original = oldImage.shape[0] * oldImage.shape[1]
+
+    # Create a 2 by 3 subplot
+    fig, plot = plt.subplots(2, 3)
+    for i in range(2):
+        for j in range(3):
+
+            # Define upper and lower thresholds based on the current compression
+            compression = compressionValue[compressionIndex]
+            low = np.percentile(fftImage, (100 - compression)//2)
+            up = np.percentile(fftImage, 100 - (100 - compression)//2)
+            print('Non zero values for compression of {}% are {} out of {}'.format(compression, 
+                int(original * ((100 - compression) / 100.0)), original))
+
+            # Compress the image by only taking the largest percentile coefficients
+            compressedFftImage = fftImage * np.logical_or(fftImage <= low, fftImage <= up)
+
+            # Save fourier transform coefficients in a txt file
+            a = np.asarray(compressedFftImage)
+            np.savetxt('coefficients-{}-compression.csr'.format(compression), a)
+
+            # Show the compressed image in the corresponding subplot
+            compressedImage = two_dim_ifft(compressedFftImage)
+            plot[i, j].imshow(np.real(compressedImage)[:oldImage.shape[0], :oldImage.shape[1]], cmap="gray")
+            plot[i, j].set_title('{}% compression'.format(compression))
+
+            compressionIndex += 1
+
+    plt.show()
     return 0
 
 
@@ -263,13 +297,13 @@ def main():
     # print(args.m)
     # print(args.i)
     if args.m == 1:
-        mode_1(args.i)
+        mode_1(img)
     elif args.m == 2:
-        mode_2(args.i)
+        mode_2(img)
     elif args.m == 3:
-        mode_3(args.i)
+        mode_3(img)
     elif args.m == 4:
-        mode_4(args.i)
+        mode_4(img)
     else:
         raise ValueError("something wrong with the mode")
 
