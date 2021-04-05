@@ -39,7 +39,7 @@ def naive_ift(X):
 
 # 1D cooley-tukey fast fourier transform (divide and conquer algorithm)
 # parameters are x (an array) and n_subproblems, which defines the base case for the algo (default value is 8)
-def fft(x, n_subproblems=8):
+def fft(x, n_subproblems=16):
     x = np.asarray(x, dtype=complex)
     N = x.shape[0]
     X = np.zeros(N, dtype=complex)
@@ -67,7 +67,7 @@ def fft(x, n_subproblems=8):
 
 
 # 1D cooley-tukey inverse FFT
-def ifft(X, n_subproblems=8):
+def ifft(X, n_subproblems=16):
     X = np.asarray(X, dtype=complex)
     N = X.shape[0]
     x = np.zeros(N, dtype=complex)
@@ -125,6 +125,7 @@ def two_dim_ifft(X):
     return x
 
 
+# Finds the next closest power of 2 to the input
 def new_size(size):
     n = int(math.log(size, 2))
     return int(pow(2, n+1))
@@ -144,12 +145,17 @@ def parse_args():
 # mode 1: image is converted into its FFT form and displayed
 def mode_1(image):
     print("mode 1")
+
+    # Collect the original image and pad zeroes to get a new image
     oldImage = plt.imread(image).astype(float)
     newShape = new_size(oldImage.shape[0]), new_size(oldImage.shape[1])
     newImage = np.zeros(newShape)
     newImage[:oldImage.shape[0], :oldImage.shape[1]] = oldImage
+
+    # Apply a fourier transform
     fftImage = two_dim_fft(newImage)
 
+    # Display the original and fourier transformed image
     fig = plt.figure()
     fig.add_subplot(121)
     plt.title("Original Image")
@@ -165,23 +171,31 @@ def mode_1(image):
 # mode 2: for denoising where the image is denoised by applying an FFT, truncating high frequencies and then displayed
 def mode_2(image):
     print("mode 2")
+
+    # Define a threshold frequency for values to keep
     keepRatio = 0.08
 
+    # Collect the original image and pad zeroes to get a new image
     oldImage = plt.imread(image).astype(float)
     newShape = new_size(oldImage.shape[0]), new_size(oldImage.shape[1])
     newImage = np.zeros(newShape)
     newImage[:oldImage.shape[0], :oldImage.shape[1]] = oldImage
+
+    # Apply a fourier transform
     fftImage = two_dim_fft(newImage)
     rows, columns = fftImage.shape
 
     print("Fraction of pixels used {} and the number is ({}, {}) out of ({}, {})".format(
         keepRatio, int(keepRatio * rows), int(keepRatio * columns), rows, columns))
 
+    # Set high frequencies to 0
     fftImage[int(rows * keepRatio) : int(rows * (1 - keepRatio))] = 0
     fftImage[:, int(columns * keepRatio) : int(columns * (1 - keepRatio))] = 0
 
+    # Retrieve denoised image by taking inverse fourier transform
     denoisedImage = two_dim_ifft(fftImage).real
 
+    # Display the original and denoised image
     fig = plt.figure()
     fig.add_subplot(121)
     plt.title("Original Image")
@@ -197,6 +211,15 @@ def mode_2(image):
 # mode 3: for compressing and saving the image
 def mode_3(image):
     print("mode 3")
+
+    # Collect the original image and pad zeroes to get a new image
+    oldImage = plt.imread(image).astype(float)
+    newShape = new_size(oldImage.shape[0]), new_size(oldImage.shape[1])
+    newImage = np.zeros(newShape)
+    newImage[:oldImage.shape[0], :oldImage.shape[1]] = oldImage
+
+    compressionValue = [0, 10, 30, 60, 80, 95]
+
     return 0
 
 
