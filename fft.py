@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 # naive 1D discrete fourier transform
 def naive_ft(x):
-    x = np.asarray(a, dtype=complex)
+    x = np.asarray(x, dtype=complex)
     N = len(x)
     X = np.zeros(N, dtype=complex)  # initialize result array as an array of 0s
 
@@ -20,7 +20,7 @@ def naive_ft(x):
 
 # naive 1D inverse discrete fourier transform
 def naive_ift(X):
-    X = np.asarray(a, dtype=complex)
+    X = np.asarray(X, dtype=complex)
     N = len(X)
     x = np.zeros(N, dtype=complex)  # initialize result array as an array of 0s
 
@@ -34,7 +34,7 @@ def naive_ift(X):
 # 1D cooley-tukey fast fourier transform (divide and conquer algorithm)
 # parameters are x (an array) and n_subproblems, which defines the base case for the algo (default value is 8)
 def fft(x, n_subproblems=8):
-    x = np.asarray(a, dtype=complex)
+    x = np.asarray(x, dtype=complex)
     N = len(x)
     X = np.zeros(N, dtype=complex)
 
@@ -57,7 +57,7 @@ def fft(x, n_subproblems=8):
 
 # 1D cooley-tukey inverse FFT
 def ifft(X, n_subproblems=8):
-    X = np.asarray(a, dtype=complex)
+    X = np.asarray(X, dtype=complex)
     N = len(X)
     x = np.zeros(N, dtype=complex)
 
@@ -78,13 +78,31 @@ def ifft(X, n_subproblems=8):
         return X
 
 
-def mode_one():
+# 2D fft
+def two_dim_fft(x):
+    x = np.asarray(x, dtype=complex)
+    N, M = len(x)
+    X = np.zeros((N, M), dtype=complex)
 
-    x = list(range(0, 10))
-    y = list(range(0, 10))
+    for m in range(M):
+        X[:, m] = fft(x[:, m])  # fft of all elements in column m
 
-    plt.plot(x, y)
-    plt.show()
+    for n in range(N):
+        X[n, :] = fft(X[n, :])  # fft of all elements in fft'ed row n
+
+    return X
 
 
-mode_one()
+# 2D ifft
+def two_dim_ifft(X):
+    X = np.asarray(X, dtype=complex)
+    N, M = len(x)
+    x = np.zeros((N, M), dtype=complex)
+
+    for m in range(M):
+        x[:, m] = ifft(X[:, m])
+
+    for n in range(N):
+        x[n, :] = ifft(x[n, :])
+
+    return x
