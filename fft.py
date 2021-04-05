@@ -2,8 +2,10 @@
 # Dina Shoham and Roey Wine
 
 import argparse
+import math
 
 import numpy as np
+import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 
 
@@ -50,9 +52,14 @@ def fft(x, n_subproblems=8):
     else:
         X_even = fft(x[::2])  # all elements at even indeces
         X_odd = fft(x[1::2])  # all elements at odd indeces
-        coeff = np.exp(-j * 2 * np.pi * np.arange(N // 2) / N)
+        #coeff = np.exp(-2j * np.pi * np.arange(N // 2) / N)
 
-        X = np.concatenate(X_even + coeff * X_odd, X_even - coeff * X_odd)
+        #X = np.concatenate(X_even + coeff * X_odd, X_even - coeff * X_odd)
+        X = np.zeros(N, dtype=complex)
+
+        for n in range(N):
+            X[n] = X_even[n % (N//2)] + \
+                np.exp(-2j * np.pi * n / N) * X_odd[n % (N//2)]
 
         return X
 
@@ -73,7 +80,7 @@ def ifft(X, n_subproblems=8):
     else:
         x_even = ifft(X[::2])  # all elements at even indeces
         x_odd = ifft(X[1::2])  # all elements at odd indeces
-        coeff = 1/N * np.exp(j * 2 * np.pi * np.arange(N // 2) / N)
+        coeff = 1/N * np.exp(2j * np.pi * np.arange(N // 2) / N)
 
         x = np.concatenate(x_even + coeff * x_odd, x_even - coeff * x_odd)
 
@@ -109,6 +116,10 @@ def two_dim_ifft(X):
 
     return x
 
+def new_size(size):
+    n = int(math.log(size, 2))
+    return int(pow(2, n+1))
+
 
 # parsing command line arguments
 def parse_args():
@@ -122,8 +133,23 @@ def parse_args():
 
 
 # mode 1: image is converted into its FFT form and displayed
-def mode_1():
+def mode_1(args):
     print("mode 1")
+    oldImage = plt.imread(args.i).astype(float)
+    newShape = new_size(oldImage.shape[0]), new_size(oldImage.shape[1])
+    newImage = np.zeros(newShape)
+    newImage[:oldImage.shape[0], :oldImage.shape[1]] = oldImage
+    fftImage = two_dim_fft(newImage)
+
+    fig = plt.figure()
+    fig.add_subplot(121)
+    plt.title("Original Image")
+    plt.imshow(oldImage, cmap="gray")
+    fig.add_subplot(122)
+    plt.title("Fourier Transformed Image With a Log Scale")
+    plt.imshow(np.abs(fftImage), norm=colors.LogNorm(vmin=5))
+    plt.show()
+
     return 0
 
 
@@ -151,13 +177,13 @@ def main():
     # print(args.m)
     # print(args.i)
     if args.m == 1:
-        mode_1()
+        mode_1(args)
     elif args.m == 2:
-        mode_2()
+        mode_2(args)
     elif args.m == 3:
-        mode_3()
+        mode_3(args)
     elif args.m == 4:
-        mode_4()
+        mode_4(args)
     else:
         raise ValueError("something wrong with the mode")
 
