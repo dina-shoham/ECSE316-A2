@@ -7,7 +7,6 @@ import math
 import numpy as np
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
-from scipy.sparse import csr_matrix
 
 # naive 1D discrete fourier transform
 def naive_ft(x):
@@ -240,15 +239,15 @@ def mode_3(image):
                 int(original * ((100 - compression) / 100.0)), original))
 
             # Compress the image by only taking the largest percentile coefficients
-            compressedFftImage = fftImage * np.logical_or(fftImage <= low, fftImage <= up)
+            compressedFftImage = fftImage * np.logical_or(fftImage <= low, fftImage >= up)
 
             # Save fourier transform coefficients in a txt file
             a = np.asarray(compressedFftImage)
             np.savetxt('coefficients-{}-compression.csr'.format(compression), a)
 
             # Show the compressed image in the corresponding subplot
-            compressedImage = two_dim_ifft(compressedFftImage)
-            plot[i, j].imshow(np.real(compressedImage)[:oldImage.shape[0], :oldImage.shape[1]], cmap="gray")
+            compressedImage = two_dim_ifft(compressedFftImage).real
+            plot[i, j].imshow(compressedImage[:oldImage.shape[0], :oldImage.shape[1]], cmap="gray")
             plot[i, j].set_title('{}% compression'.format(compression))
 
             compressionIndex += 1
