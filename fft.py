@@ -3,6 +3,7 @@
 
 import argparse
 import math
+import time
 
 import numpy as np
 import matplotlib.colors as colors
@@ -169,7 +170,7 @@ def mode_1(image):
     plt.imshow(np.abs(fftImage), norm=colors.LogNorm(vmin=5))
     plt.show()
 
-    return 0
+    return 
 
 
 # mode 2: for denoising where the image is denoised by applying an FFT, truncating high frequencies and then displayed
@@ -207,7 +208,7 @@ def mode_2(image):
     plt.imshow(denoisedImage, cmap="gray")
     plt.show()
 
-    return 0
+    return 
 
 
 # mode 3: for compressing and saving the image
@@ -254,13 +255,51 @@ def mode_3(image):
             compressionIndex += 1
 
     plt.show()
-    return 0
+    return 
 
 
 # mode 4: for plotting the runtime graphs for the report
-def mode_4(image):
+def mode_4():
     print("mode 4")
-    return 0
+    
+    fig, ax = plt.subplots()
+    ax.set_xlabel('Problem Size')
+    ax.set_ylabel('Runtime (s)')
+    ax.set_title('Mode 4 Plot')
+
+    data_x = np.zeros(5) 
+    fft_averages = np.zeros(5)
+    fft_stdevs = np.zeros(5)
+
+    fft_times = np.zeros(10)
+
+    for n in range(5, 10): 
+        print("Input size " + str(2**n) + " x " + str(2**n))
+        test_x = np.random.rand(2**n, 2**n)
+
+        for i in range(10):
+            print("Running trial " + str(i)) 
+            t_i = time.time()
+            two_dim_fft(test_x)
+            t_f = time.time()
+            fft_times[i] = (t_f - t_i)
+
+        data_x[n-5] = 2**n
+        fft_averages[n-5] = np.average(fft_times)
+        fft_stdevs[n-5] = np.std(fft_times)
+        
+    plt.errorbar(data_x, fft_averages, yerr=(fft_stdevs * 2), fmt='r--')
+    
+    print("data_x: ")
+    print(data_x)
+    print("averages: ")
+    print(fft_averages)
+    print("std devs: ")
+    print(fft_stdevs)
+    
+    plt.show()
+
+    return 
 
 
 def test():
@@ -291,7 +330,7 @@ def test():
                 "{} failed the test".format(method.__name__))
 
 def main():
-    test()
+    # test()
     args = parse_args()
     img = args.i
     # print(args.m)
@@ -303,9 +342,9 @@ def main():
     elif args.m == 3:
         mode_3(img)
     elif args.m == 4:
-        mode_4(img)
+        mode_4()
     else:
-        raise ValueError("something wrong with the mode")
+        raise ValueError("Mode not recognized. Please enter an integer from 1-4.")
 
 
 main()
