@@ -130,6 +130,13 @@ def new_size(size):
     return int(pow(2, n+1))
 
 
+def resize(oldImage):
+    newShape = new_size(oldImage.shape[0]), new_size(oldImage.shape[1])
+    newImage = np.zeros(newShape)
+    newImage[:oldImage.shape[0], :oldImage.shape[1]] = oldImage
+    return newImage
+
+
 # parsing command line arguments
 def parse_args():
     parser = argparse.ArgumentParser(description="parse switches")
@@ -147,9 +154,7 @@ def mode_1(image):
 
     # Collect the original image and pad zeroes to get a new image
     oldImage = plt.imread(image).astype(float)
-    newShape = new_size(oldImage.shape[0]), new_size(oldImage.shape[1])
-    newImage = np.zeros(newShape)
-    newImage[:oldImage.shape[0], :oldImage.shape[1]] = oldImage
+    newImage = resize(oldImage)
 
     # Apply a fourier transform
     fftImage = two_dim_fft(newImage)
@@ -176,9 +181,7 @@ def mode_2(image):
 
     # Collect the original image and pad zeroes to get a new image
     oldImage = plt.imread(image).astype(float)
-    newShape = new_size(oldImage.shape[0]), new_size(oldImage.shape[1])
-    newImage = np.zeros(newShape)
-    newImage[:oldImage.shape[0], :oldImage.shape[1]] = oldImage
+    newImage = resize(oldImage)
 
     # Apply a fourier transform
     fftImage = two_dim_fft(newImage)
@@ -213,9 +216,7 @@ def mode_3(image):
 
     # Collect the original image and pad zeroes to get a new image
     oldImage = plt.imread(image).astype(float)
-    newShape = new_size(oldImage.shape[0]), new_size(oldImage.shape[1])
-    newImage = np.zeros(newShape)
-    newImage[:oldImage.shape[0], :oldImage.shape[1]] = oldImage
+    newImage = resize(oldImage)
 
     # Apply a fourier transform
     fftImage = two_dim_fft(newImage)
